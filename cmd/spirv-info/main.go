@@ -7,7 +7,7 @@ import (
 	"os"
 	"unsafe"
 
-	"spvreflect/pkg/spvreflect"
+	"github.com/casskir/spirv-reflect-go/pkg/spvreflect"
 )
 
 func main() {
