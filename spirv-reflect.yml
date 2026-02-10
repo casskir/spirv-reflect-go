@@ -1,0 +1,72 @@
+---
+GENERATOR:
+  PackageName: spvreflect
+  PackageDescription: "Package spvreflect provides Go bindings for SPIRV-Reflect."
+  PackageLicense: "MIT License"
+  OutDir: "pkg/spvreflect"
+  # Путь к заголовочным файлам (измените, если они лежат в другой папке)
+  Includes: ["../../internal/SPIRV-Reflect/spirv_reflect.h"]
+  # Флаги компиляции и линковки
+  # Настройка CGO чтобы он скомпилировал C-код прямо из сабмодуля
+  FlagGroups:
+    - { name: "CFLAGS", flags: ["-Wno-deprecated-declarations"] }
+
+PARSER:
+  IncludePaths: ["/usr/include/", "/usr/local/include", "/usr/local/stdinclude"]
+  SourcesPaths:
+    - internal/SPIRV-Reflect/spirv_reflect.h
+
+TRANSLATOR:
+  ConstRules:
+    defines: expand
+    enum: eval
+  Rules:
+    global:
+      - { action: accept, from: "^(S|s)pv"}
+      - { action: accept, from: "^SPV_" } # Для констант в верхнем регистре
+      - { action: replace, from: "^SpvReflectCapability$", to: "CapabilityInfo" }
+      - { action: replace, from: "^spvReflectSourceLanguage$", to: "SourceLanguageName" }
+      # Удаляем префикс SpvReflect из имен структур и типов для более идиоматичного Go (spvreflect.ShaderModule)
+      - { action: replace, from: "^SpvReflect" }
+      - { action: replace, from: "^Spv" }
+      # 2. Убираем подчеркивания и делаем следующую букву заглавной
+      # (c-for-go применит это к именам полей)
+      - { action: replace, from: "_([a-z])", to: "$1", transform: export }
+      # Делаем имена экспортируемыми (с заглавной буквы)
+      - { transform: export }
+
+    # Правила именования функций
+    function:
+      - { action: "ignore", from: "spvReflectGetShaderModule" }
+      - { action: replace, from: "^SpvReflect" }
+      - { transform: export }
+
+    const:
+      - { action: replace, from: "^SPV_REFLECT_" }
+      - { transform: lower }
+      - { load: snakecase }
+      - { transform: export }
+
+    # Обработка перечислений (Enums)
+    enum:
+      - { transform: export }
+
+  # Определение указателей (уточнение, как интерпретировать * в C)
+  PtrTips:
+    function:
+      - { target: "^(spvReflectDestroyShaderModule|spvReflectGetCodeSize|spvReflectGetCode|spvReflectEnumeratePushConstants|spvReflectGetInputVariable|spvReflectGetOutputVariable|spvReflectGetPushConstant|spvReflectChangeDescriptorBindingNumber)$", tips: [ref] }
+      - { target: "^spvReflectGetEntryPoint$", tips: [0, ref] }
+      - { target: "^spvReflectCreateShaderModule$", tips: [0, 0, ref] }
+      - { target: "^spvReflectCreateShaderModule2$", tips: [ 0, 0, 0, ref ] }
+      - { target: "^(spvReflectEnumerateDescriptorBindings|spvReflectEnumerateDescriptorSets|spvReflectEnumerateInterfaceVariables|spvReflectEnumerateInputVariables|spvReflectEnumerateOutputVariables|spvReflectEnumeratePushConstantBlocks|spvReflectEnumerateSpecializationConstants)$", tips: [ref, ref, ref] }
+      - { target: "^(spvReflectEnumerateEntryPointDescriptorBindings|spvReflectEnumerateEntryPointDescriptorSets|spvReflectEnumerateEntryPointInterfaceVariables|spvReflectEnumerateEntryPointInputVariables|spvReflectEnumerateEntryPointOutputVariables|spvReflectEnumerateEntryPointPushConstantBlocks)$", tips: [ref, 0, ref, ref] }
+      - { target: "^(spvReflectGetDescriptorBinding|spvReflectGetEntryPointDescriptorSet|spvReflectGetEntryPointInputVariableByLocation|spvReflectGetEntryPointInputVariableBySemantic|spvReflectGetEntryPointOutputVariableByLocation|spvReflectGetEntryPointOutputVariableBySemantic)$", tips: [ref, 0, 0, ref] }
+      - { target: "^(spvReflectGetDescriptorSet|spvReflectGetInputVariableByLocation|spvReflectGetInputVariableBySemantic|spvReflectGetOutputVariableByLocation|spvReflectGetOutputVariableBySemantic|spvReflectGetPushConstantBlock|spvReflectGetEntryPointPushConstantBlock)$", tips: [ref, 0, ref] }
+      - { target: "^spvReflectGetEntryPointDescriptorBinding$", tips: [ref, 0, 0, 0, ref] }
+      - { target: "^spvReflectChangeDescriptorBindingNumbers$", tips: [ref, ref, 0, 0] }
+      - { target: "^(spvReflectChangeDescriptorSetNumber|spvReflectChangeInputVariableLocation|spvReflectChangeOutputVariableLocation)$", tips: [ref, ref, 0] }
+
+  # Типизация специфичных для SPIR-V типов
+  TypeTips:
+    struct:
+      - {target: "SpvReflectShaderModule", nomenclator: "ShaderModule"}
