@@ -106,6 +106,11 @@ Run against the included sample shader:
 - Missing submodule: run `git submodule update --init --recursive` before building.
 - Compiler/linker errors: install a C compiler toolchain (e.g., `build-essential` on Debian/Ubuntu, Xcode CLT on macOS, or MSYS2/MinGW on Windows).
 
+### Code Generation
+The Go bindings are generated using [c-for-go](https://github.com/xlab/c-for-go) tool. To regenerate the bindings:
+```bash
+c-for-go -ccdefs -out pkg/ spirv-reflect.yml
+```
 
 ### License and acknowledgements
 - This project wraps the upstream SPIRV-Reflect library (see `internal/SPIRV-Reflect`). Please refer to its license for upstream terms.
