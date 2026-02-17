@@ -65,6 +65,8 @@ TRANSLATOR:
       - { target: "^spvReflectGetEntryPointDescriptorBinding$", tips: [ref, 0, 0, 0, ref] }
       - { target: "^spvReflectChangeDescriptorBindingNumbers$", tips: [ref, ref, 0, 0] }
       - { target: "^(spvReflectChangeDescriptorSetNumber|spvReflectChangeInputVariableLocation|spvReflectChangeOutputVariableLocation)$", tips: [ref, ref, 0] }
+    struct:
+      - { target: "^SpvReflectBlockVariable", tips: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, arr, ref, 0] }
 
   # Типизация специфичных для SPIR-V типов
   TypeTips:
