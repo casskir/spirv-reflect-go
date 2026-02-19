@@ -15,6 +15,7 @@ PARSER:
   IncludePaths: ["/usr/include/", "/usr/local/include", "/usr/local/stdinclude"]
   SourcesPaths:
     - internal/SPIRV-Reflect/spirv_reflect.h
+    - internal/spirv_reflect_types.h
 
 TRANSLATOR:
   ConstRules:
@@ -24,6 +25,7 @@ TRANSLATOR:
     global:
       - { action: accept, from: "^(S|s)pv"}
       - { action: accept, from: "^SPV_" } # Для констант в верхнем регистре
+      - { action: accept, from: "^(Traits|Scalar|Vector|Matrix)$" }
       - { action: replace, from: "^SpvReflectCapability$", to: "CapabilityInfo" }
       - { action: replace, from: "^spvReflectSourceLanguage$", to: "SourceLanguageName" }
       # Удаляем префикс SpvReflect из имен структур и типов для более идиоматичного Go (spvreflect.ShaderModule)
@@ -40,6 +42,9 @@ TRANSLATOR:
       - { action: "ignore", from: "spvReflectGetShaderModule" }
       - { action: replace, from: "^SpvReflect" }
       - { transform: export }
+
+    type:
+      - { action: accept, from: "^(Traits|Scalar|Vector|Matrix)$" }
 
     const:
       - { action: replace, from: "^SPV_REFLECT_" }
@@ -66,7 +71,8 @@ TRANSLATOR:
       - { target: "^spvReflectChangeDescriptorBindingNumbers$", tips: [ref, ref, 0, 0] }
       - { target: "^(spvReflectChangeDescriptorSetNumber|spvReflectChangeInputVariableLocation|spvReflectChangeOutputVariableLocation)$", tips: [ref, ref, 0] }
     struct:
-      - { target: "^SpvReflectBlockVariable", tips: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, arr, ref, 0] }
+      - { target: "^SpvReflectBlockVariable$", tips: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, arr, ref, 0] }
+      - { target: "^SpvReflectTypeDescription$", tips: [0,0,0,0,0,0,0,ref,0,0,0,arr] }
 
   # Типизация специфичных для SPIR-V типов
   TypeTips:
